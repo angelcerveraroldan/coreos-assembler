@@ -203,7 +203,15 @@ generate_runvm_osbuild_config() {
     # the size set in the configs since some of them have minimum sizes that
     # the platforms require and we want a "default" disk size that has some
     # free space.
-    nonroot_partition_sizes=513
+	mpp_file="/usr/lib/coreos-assembler/osbuild-manifests/coreos.osbuild.${basearch}.mpp.yaml"
+	nonroot_partition_sizes="$(yq '
+		.["mpp-vars"] |
+		(.bios_boot_size_mb // 0) +
+		(.efi_system_size_mb // 0) +
+		(.boot_size_mb // 0) +
+		(.reserved_part_size_mb // 0) +
+		(.ppc_prep_size_mb // 0)
+	' "${mpp_file}")"
     # On s390x there is one more build - Secure Execution case, which has
     # different image layout. We add the sizes of the se and verity
     # partitions so that they don't "eat into" the 35% buffer (though note
